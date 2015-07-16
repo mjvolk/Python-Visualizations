@@ -12,8 +12,8 @@ import sys
 # with open('http://raw.githubusercontent.com/wrobstory/vincent_map_data/master/world-countries.topo.json', 'r') as f:
 #     get_id = json.load(f)
 
-def getProjectData(index, organization):
-    url = 'http://api.aiddata.org/aid/project?size=50&fo=' + str(organization) + '&from=' + str(index)
+def getProjectData(index, organization, years):
+    url = 'http://api.aiddata.org/aid/project?size=50&fo=' + str(organization) + '&from=' + str(index) + '&y=' + str(years)
     result = json.load(urllib2.urlopen(url))
     return result
 
@@ -23,6 +23,15 @@ def addNonDonatedCountries(donor_dict, world):
             donor_dict[country['id']] = 0.0
     return donor_dict
 
+def getYearString(start_year, finish_year):
+    result = ''
+    while start_year < finish_year:
+        result += str(start_year)
+        result += ','
+        start_year += 1
+    result += str(finish_year)
+    return result
+
 request = urllib2.urlopen('https://raw.githubusercontent.com/wrobstory/vincent_map_data/master/world-countries.topo.json')
 get_id = json.load(request)
 
@@ -30,9 +39,18 @@ geometries = get_id['objects']['world-countries']['geometries']
 iso_codes = [x['id'] for x in geometries]
 country_df = pd.DataFrame({'iso_a3': iso_codes}, dtype=str)
 
+# First cmd line parameter is the organization id as specified by the organization id numbers on
+# the AidData API
 organization_id = int(sys.argv[1])
+# Second cmd line parameter is the start year for the project data
+start_year = int(sys.argv[2])
+# Third cmd line parameter is the end year for the project data
+end_year = int(sys.argv[3])
 
-# organization_id = 45
+# Used for testing
+# organization_id = 6
+# start_year = 2004
+# end_year = 2013
 
 
 url = 'http://api.aiddata.org/aid/project?size=50&fo=' + str(organization_id)
@@ -49,13 +67,14 @@ print 'Creating map for ' + donating_org
 
 json_result = json.load(urllib2.urlopen(url))
 num_projects = json_result['project_count']
+year_range = getYearString(start_year, end_year)
 count = 0
 country_dict = {}
 pbar = ProgressBar(maxval=num_projects).start()
 
 # print str(num_projects)
 while (count < num_projects):
-    project_info = getProjectData(count, organization_id)
+    project_info = getProjectData(count, organization_id, year_range)
     for project in project_info['items']:
         if 'transactions' in project:
             for transactions in project['transactions']:
