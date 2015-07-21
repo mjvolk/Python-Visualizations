@@ -29,7 +29,7 @@ def getYearString(start_year, finish_year):
     result += str(finish_year)
     return result
 
-request = urllib2.urlopen('https://raw.githubusercontent.com/wrobstory/vincent_map_data/master/world-countries.topo.json')
+request = urllib2.urlopen('https://raw.githubusercontent.com/mjvolk/Python-Visualizations/master/world-countries.topo.json')
 get_id = json.load(request)
 
 # create a dataframe of iso-3 codes in for use in builiding the map
