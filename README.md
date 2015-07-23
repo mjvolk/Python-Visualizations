@@ -1,2 +1,2 @@
-# Donor-Profile-Visualizations
+# Python-Visualizations
 Automated Data Visualizations for AidData's Donor Profiles
