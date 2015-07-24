@@ -2,6 +2,7 @@ import urllib2
 import json
 import pandas as pd
 import socket
+import os
 from progressbar import ProgressBar
 
 
@@ -99,6 +100,9 @@ for org in json_orgs['hits']:
 
     dates_and_sources = pd.DataFrame(timeline_dict)
     file_name = 'src_timelines/' + donating_org.replace(' ', '_') + '_source_timeline.json'
+    png_name = 'png_timelines/' + donating_org.replace(' ', '_') + '_timeline.png'
     dates_and_sources.to_json(file_name)
+    os.system('python create-html.py ' + file_name)
+    os.system('phantomjs --ignore-ssl-errors=true render.js ' + png_name)
     index += 1
     print str(index) + ' out of 100 completed'
