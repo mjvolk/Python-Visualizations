@@ -1,6 +1,7 @@
 import sys
 
 source = sys.argv[1]
+file_name = sys.argv[2]
 html = """<html>
   <head>
     <script type="text/javascript" src="https://www.google.com/jsapi?autoload={'modules':[{'name':'visualization','version':'1.1','packages':['timeline']}]}"></script>
@@ -55,6 +56,6 @@ function drawChart(json) {
   </body>
 </html>"""
 
-Html_file = open('index.html', 'w')
+Html_file = open(file_name, 'w')
 Html_file.write(html)
 Html_file.close()
