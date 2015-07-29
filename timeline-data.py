@@ -5,7 +5,9 @@ import socket
 import os
 from progressbar import ProgressBar
 
-
+# Sets up a timeout time for API calls, when the API has not responded in the given
+# seconds, the socket will send a timeout error which prompts the program to retry
+# the API call
 timeout = 2
 socket.setdefaulttimeout(timeout)
 
