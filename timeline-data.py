@@ -80,7 +80,7 @@ index = 0
 # Goes through each donor's data and creates a png timeline image
 for org in json_orgs['hits']:
     organization_id = org['id']
-    donating_org = org['name']
+    donating_org = org['name'].encode('utf-8')
     print 'Creating Timeline for ' + donating_org
     # Gets the total number of projects for the donor
     while (True):
@@ -113,7 +113,7 @@ for org in json_orgs['hits']:
                     year_dict[current_source].append(year)
                     year_dict[current_source].sort()
         count += 50
-        print str(count)
+        print count
 
 
     timeline_dict = {}
