@@ -8,7 +8,7 @@ from progressbar import ProgressBar
 # Sets up a timeout time for API calls, when the API has not responded in the given
 # seconds, the socket will send a timeout error which prompts the program to retry
 # the API call
-timeout = 2
+timeout = 0.5
 socket.setdefaulttimeout(timeout)
 if not os.path.exists('html_timelines'): os.makedirs('html_timelines')
 if not os.path.exists('src_timelines'): os.makedirs('src_timelines')
@@ -21,7 +21,7 @@ def getDonorData(donor, yearlist, index):
         try:
             result = json.load(urllib2.urlopen(url))
             break
-        except socket.timeout or urllib2.HTTPError:
+        except:
             pass
     return result
 
@@ -77,7 +77,7 @@ while (True):
     try:
         json_orgs = json.load(urllib2.urlopen('http://api.aiddata.org/data/origin/organizations'))
         break
-    except socket.timeout or urllib2.HTTPError:
+    except:
         pass
 index = 0
 
@@ -91,7 +91,7 @@ for org in json_orgs['hits']:
         try:
             num_projects = getDonorData(organization_id, yearlist, 0)['project_count']
             break
-        except socket.timeout or urllib2.HTTPError:
+        except:
             pass
     print 'Processing ' + str(num_projects) + ' projects'
     count = 0
@@ -104,7 +104,7 @@ for org in json_orgs['hits']:
                 try:
                     source_info = getDonorData(organization_id, yearlist, count)
                     break
-                except socket.timeout or urllib2.HTTPError:
+                except:
                     pass
             for source in source_info['items']:
                 if 'transactions' in source and int(source['transactions'][0]['tr_year']) >= start_year:
