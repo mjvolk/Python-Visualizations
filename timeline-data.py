@@ -10,6 +10,8 @@ from progressbar import ProgressBar
 # the API call
 timeout = 2
 socket.setdefaulttimeout(timeout)
+if not os.path.exists('html_timelines'): os.makedirs('html_timelines')
+if not os.path.exists('src_timelines'): os.makedirs('src_timelines')
 
 # Receives a donor's information from the AidData API in increments of 50
 def getDonorData(donor, yearlist, index):
@@ -19,7 +21,7 @@ def getDonorData(donor, yearlist, index):
         try:
             result = json.load(urllib2.urlopen(url))
             break
-        except socket.timeout:
+        except socket.timeout or urllib2.HTTPError:
             pass
     return result
 
@@ -73,9 +75,9 @@ yearlist = getYearString(start_year, end_year)
 # Gets the list of donors from the AidData API
 while (True):
     try:
-        json_orgs = json.load(urllib2.urlopen('http://api.aiddata.org/data/origin/organizations?'))
+        json_orgs = json.load(urllib2.urlopen('http://api.aiddata.org/data/origin/organizations'))
         break
-    except socket.timeout:
+    except socket.timeout or urllib2.HTTPError:
         pass
 index = 0
 
@@ -89,54 +91,56 @@ for org in json_orgs['hits']:
         try:
             num_projects = getDonorData(organization_id, yearlist, 0)['project_count']
             break
-        except socket.timeout:
+        except socket.timeout or urllib2.HTTPError:
             pass
     print 'Processing ' + str(num_projects) + ' projects'
     count = 0
     year_dict = {}
 
     # Goes through all of a donor's projects and finds the years each source was used
-    while(count < num_projects):
-        while (True):
-            try:
-                source_info = getDonorData(organization_id, yearlist, count)
-                break
-            except socket.timeout:
-                print 'Timeout: retrying API call'
-        for source in source_info['items']:
-            if 'transactions' in source and int(source['transactions'][0]['tr_year']) >= start_year:
-                year = int(source['transactions'][0]['tr_year'])
-                current_source = source['source']['label']
-                # If the current source is not in the dictionary, it is added as a key
-                if current_source not in year_dict:
-                    year_dict[current_source] = list()
-                # If the current year is not in the current_sources list, it is added
-                if year not in year_dict[current_source]:
-                    year_dict[current_source].append(year)
-                    year_dict[current_source].sort()
-        count += 50
-        print count
+    if num_projects > 0:
+        while(count < num_projects):
+            while (True):
+                try:
+                    source_info = getDonorData(organization_id, yearlist, count)
+                    break
+                except socket.timeout or urllib2.HTTPError:
+                    pass
+            for source in source_info['items']:
+                if 'transactions' in source and int(source['transactions'][0]['tr_year']) >= start_year:
+                    year = int(source['transactions'][0]['tr_year'])
+                    current_source = source['source']['label']
+                    # If the current source is not in the dictionary, it is added as a key
+                    if current_source not in year_dict:
+                        year_dict[current_source] = list()
+                    # If the current year is not in the current_sources list, it is added
+                    if year not in year_dict[current_source]:
+                        year_dict[current_source].append(year)
+                        year_dict[current_source].sort()
+            count += 50
+            if count > num_projects:
+                count = num_projects
+            print '{}/{}\r'.format(count, num_projects),
 
 
-    timeline_dict = {}
-    # Fills a dictionary of sources with their year ranges
-    for source in year_dict:
-        timeline_dict[source] = {}
-        timeline_dict[source]['Start'] = getStartYears(year_dict[source])
-        timeline_dict[source]['End'] = getEndYears(year_dict[source])
+        timeline_dict = {}
+        # Fills a dictionary of sources with their year ranges
+        for source in year_dict:
+            timeline_dict[source] = {}
+            timeline_dict[source]['Start'] = getStartYears(year_dict[source])
+            timeline_dict[source]['End'] = getEndYears(year_dict[source])
 
 
-    dates_and_sources = pd.DataFrame(timeline_dict)
-    file_prefix = donating_org.replace(' ', '_').replace('(', '').replace(')', '')
-    file_name = 'src_timelines/' + file_prefix + '_source_timeline.json'
-    png_name = 'png_timelines/' + file_prefix + '_timeline.png'
-    html_name = 'html_timelines/' + file_prefix +'_timeline.html'
-    if not os.path.exists('html_timelines'): os.makedirs('html_timelines')
-    dates_and_sources.to_json(file_name)
-    # Creates html files that are used to generate png files
-    os.system('python create-html.py "' + file_name + '" index.html "' + donating_org + '"')
-    os.system('python create-html.py "../' + file_name + '" "' + html_name + '" "' + donating_org + '"')
-    # Generates a png file given one of the previously generated html files
-    os.system('phantomjs --ignore-ssl-errors=true render.js "' + png_name + '"')
+        dates_and_sources = pd.DataFrame(timeline_dict)
+        file_prefix = donating_org.replace(' ', '_').replace('(', '').replace(')', '')
+        file_name = 'src_timelines/' + file_prefix + '_source_timeline.json'
+        png_name = 'png_timelines/' + file_prefix + '_timeline.png'
+        html_name = 'html_timelines/' + file_prefix +'_timeline.html'
+        dates_and_sources.to_json(file_name)
+        # Creates html files that are used to generate png files
+        os.system('python create-html.py "' + file_name + '" index.html "' + donating_org + '"')
+        os.system('python create-html.py "../' + file_name + '" "' + html_name + '" "' + donating_org + '"')
+        # Generates a png file given one of the previously generated html files
+        os.system('phantomjs --ignore-ssl-errors=true render.js "' + png_name + '"')
     index += 1
     print str(index) + ' out of 100 completed'
