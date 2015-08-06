@@ -3,13 +3,23 @@ import json
 import vincent
 import urllib2
 from progressbar import ProgressBar
+import socket
 import os
 import sys
+
+
+timeout = 0.5
+socket.setdefaulttimeout(timeout)
 
 # Gets project data from AidData project api for an organization indicated by its AidData api id
 def getProjectData(index, organization, years):
     url = 'http://api.aiddata.org/aid/project?size=50&fo=' + str(organization) + '&from=' + str(index) + '&y=' + str(years)
-    result = json.load(urllib2.urlopen(url))
+    while (True):
+        try:
+            result = json.load(urllib2.urlopen(url))
+            break
+        except:
+            pass
     return result
 
 # Adds countries that have not received donations to the list so that they can be displayed on the map
@@ -39,18 +49,17 @@ country_df = pd.DataFrame({'iso_a3': iso_codes}, dtype=str)
 
 # First cmd line parameter is the organization id as specified by the organization id numbers on
 # the AidData API
-organization_id = int(sys.argv[1])
-# Second cmd line parameter is the start year for the project data
-start_year = int(sys.argv[2])
-# Third cmd line parameter is the end year for the project data
-end_year = int(sys.argv[3])
+# organization_id = int(sys.argv[1])
+# # Second cmd line parameter is the start year for the project data
+# start_year = int(sys.argv[2])
+# # Third cmd line parameter is the end year for the project data
+# end_year = int(sys.argv[3])
 
 # Used for testing
-# organization_id = 28
-# start_year = 2004
-# end_year = 2013
+organization_id = 28
+start_year = 2003
+end_year = 2013
 
-url = 'http://api.aiddata.org/aid/project?size=50&fo=' + str(organization_id)
 organizations_url = 'http://api.aiddata.org/data/origin/organizations?'
 json_orgs = json.load(urllib2.urlopen(organizations_url))
 donating_org = ''
@@ -63,7 +72,7 @@ for org in json_orgs['hits']:
 
 print 'Creating map for ' + donating_org
 
-json_result = json.load(urllib2.urlopen(url))
+json_result = getProjectData(0, organization_id, getYearString(start_year, end_year))
 num_projects = json_result['project_count']
 year_range = getYearString(start_year, end_year)
 count = 0
@@ -113,6 +122,7 @@ vis = vincent.Map(data=merged, geo_data=geo_data, scale=1000, projection='patter
           map_key={'countries': 'id'})
 
 vis.legend(title="Donation Amount")
+# Creates file names to seperate different countries
 json_file_name = donating_org.replace(' ', '_') + '_donations.json'
 png_file_name = donating_org.replace(' ', '_') + '_donations.png'
 vis.to_json(json_file_name)
