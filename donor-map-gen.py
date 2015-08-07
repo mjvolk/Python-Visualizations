@@ -62,7 +62,12 @@ end_year = int(sys.argv[3])
 
 # Retrieves list of donor organizations and their IDs from AidData API
 organizations_url = 'http://api.aiddata.org/data/origin/organizations?'
-json_orgs = json.load(urllib2.urlopen(organizations_url))
+while (True):
+    try:
+        json_orgs = json.load(urllib2.urlopen(organizations_url))
+        break
+    except:
+        pass
 donating_org = ''
 
 # Finds the donating organization based on the id
