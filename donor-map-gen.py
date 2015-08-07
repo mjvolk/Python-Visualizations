@@ -87,6 +87,7 @@ while (count < num_projects):
     for project in project_info['items']:
         # Only looks at projects that have transaction values
         if 'transactions' in project:
+            # Iterates through each transaction in a given project
             for transactions in project['transactions']:
                 # Ignores projects that don't indicate a recipient country
                 if 'tr_receiver_country' in transactions and transactions['tr_receiver_country']['iso3'] != '':
