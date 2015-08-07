@@ -32,18 +32,17 @@ def getYearString(start_year, finish_year):
 
 
 
-# First cmd line parameter is the organization id as specified by the organization id numbers on
-# the AidData API
-# topX = int(sys.argv[1])
-# # Second cmd line parameter is the start year for the project data
-# start_year = int(sys.argv[2])
-# # Third cmd line parameter is the end year for the project data
-# end_year = int(sys.argv[3])
+# First cmd line parameter is the amount of top receivers that will be displayed for each donor
+topX = int(sys.argv[1])
+# Second cmd line parameter is the start year for the project data
+start_year = int(sys.argv[2])
+# Third cmd line parameter is the end year for the project data
+end_year = int(sys.argv[3])
 
 # Used for testing
-topX = 10
-start_year = 2005
-end_year = 2010
+# topX = 10
+# start_year = 2005
+# end_year = 2010
 
 result = list()
 header = list()
