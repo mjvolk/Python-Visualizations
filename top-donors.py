@@ -44,18 +44,21 @@ end_year = int(sys.argv[3])
 # start_year = 2005
 # end_year = 2010
 
+# Creates a result list that will contain lists to be used as rows in the resulting csv
 result = list()
 header = list()
 header.append('Donor')
+# Creates a header line for the csv that labels the recipients and their amounts in order
 for x in range(topX):
     header.append('Receiver ' + str(x+1))
     header.append('Amount ' + str(x+1))
 result.append(header)
+# Names the file to be created according to amount of recipients looked at and year range
 file_name = 'Top' + str(topX) + 'DonorsFor' + str(start_year) + '-' + str(end_year) + '.csv'
 file = open(file_name, 'wb')
 csv_file = csv.writer(file)
 
-
+# Loads donor list
 organizations_url = 'http://api.aiddata.org/data/origin/organizations?'
 while(True):
     try:
